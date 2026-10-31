@@ -32,16 +32,17 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'fast' || inputs.scope == 'runtime' || inputs.scope == 'release' || inputs.scope == 'mcp' || inputs.scope == 'full'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
         with:
           install-codex: "false"
           install-dart: "false"
@@ -69,7 +70,7 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'runtime' || inputs.scope == 'full'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
       CODEX_HOME: /tmp/rldyour-codex-home
@@ -79,10 +80,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
-
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
       - name: Install managed browser wrapper fixture
         shell: bash
         run: |
@@ -121,16 +123,17 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'release' || inputs.scope == 'full'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
         with:
           install-codex: "false"
           install-dart: "false"
@@ -151,14 +154,16 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'mcp' || inputs.scope == 'full'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
         with:
           install-codex: "false"
           install-dart: "false"
@@ -200,7 +205,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && (inputs.scope == 'mcp' || inputs.scope == 'full'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       CODEX_HOME: /tmp/rldyour-codex-home
@@ -211,10 +216,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
-
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
       - name: Install rldyour Codex into temporary CODEX_HOME
         run: scripts/install_system_codex.sh --apply --codex-home "$CODEX_HOME"
 
@@ -241,3 +246,30 @@ jobs:
           path: |
             mcp-safe-calls.stderr.log
           retention-days: 14
+
+  workflows:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/tools@ab62f45b2a3067e5a7425d703f7fd07f1618b72c # nddev-cicd-v0.6.14
+        with:
+          capability: security
+      - name: Lint and audit workflows
+        run: |
+          actionlint
+          zizmor --offline --no-progress .github/workflows/validate.yml .github/workflows/cross-platform.yml .github/workflows/dependency-check.yml .github/workflows/security-static.yml .github/workflows/security.yml .github/dependabot.yml
+      - name: Scan new pull request commits, or the full history on main
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$BASE" ]; then
+            gitleaks git --no-banner --redact --log-opts="$BASE..$HEAD" .
+          else
+            gitleaks git --no-banner --redact .
+          fi
+

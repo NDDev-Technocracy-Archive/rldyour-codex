@@ -1,59 +1,69 @@
 name: cross-platform
 
-# Free public standard-runner portability smoke. Runtime-heavy Codex/MCP jobs
-# stay in validate.yml on Ubuntu, while this workflow proves repository
-# metadata and Python validators are portable across the standard public
-# Ubuntu, Windows, and macOS runner families.
-
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '20 4 * * 0'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: cross-platform-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: cross-platform-${{ github.event.pull_request.number || github.ref }}
+  # Obsolete pull-request heads are cancelled; a running main validation always completes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   smoke:
-    name: cross-platform smoke (${{ matrix.os }})
-    permissions:
-      contents: read
+    name: smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    uses: NDDev-OpenNetwork/ci-workflows/.github/workflows/cross-platform-smoke.yml@66fc19d6ee02c703bc219aa4f31d5f98a3def54b # 0.1.10
-    with:
-      os_list: '["${{ matrix.os }}"]'
-      timeout_minutes: 10
-      command: |
-        python - <<'PY'
-        from pathlib import Path
-        import compileall
-        import json
+        os:
+        - ubuntu-24.04
+        - windows-2025
+        - macos-26
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.13'
+    - name: Run smoke command
+      shell: bash
+      env:
+        SMOKE_COMMAND: |
+          python - <<'PY'
+          from pathlib import Path
+          import compileall
+          import json
 
-        required = [
-            "VERSION",
-            "README.md",
-            ".agents/plugins/marketplace.json",
-            ".github/branch-protection/main.json",
-        ]
-        missing = [path for path in required if not Path(path).exists()]
-        if missing:
-            raise SystemExit("missing required path(s): " + ", ".join(missing))
+          required = [
+              "VERSION",
+              "README.md",
+              ".agents/plugins/marketplace.json",
+              ".github/branch-protection/main.json",
+          ]
+          missing = [path for path in required if not Path(path).exists()]
+          if missing:
+              raise SystemExit("missing required path(s): " + ", ".join(missing))
 
-        json.loads(Path(".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
-        json.loads(Path(".github/branch-protection/main.json").read_text(encoding="utf-8"))
+          json.loads(Path(".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
+          json.loads(Path(".github/branch-protection/main.json").read_text(encoding="utf-8"))
 
-        if not compileall.compile_dir("scripts", quiet=1):
-            raise SystemExit("scripts/ Python compile failed")
-        print("cross-platform metadata smoke passed")
-        PY
+          if not compileall.compile_dir("scripts", quiet=1):
+              raise SystemExit("scripts/ Python compile failed")
+          print("cross-platform metadata smoke passed")
+          PY
+      run: |
+        set -euo pipefail
+        case "$RUNNER_OS" in
+          Linux) selected="${LINUX_COMMAND:-$SMOKE_COMMAND}" ;;
+          macOS) selected="${MACOS_COMMAND:-$SMOKE_COMMAND}" ;;
+          Windows) selected="${WINDOWS_COMMAND:-$SMOKE_COMMAND}" ;;
+        esac
+        bash -euo pipefail -c "$selected"
