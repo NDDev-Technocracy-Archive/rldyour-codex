@@ -44,7 +44,7 @@ BENIGN_RULES: tuple[NoiseRule, ...] = (
         "pydantic-settings-forward-reference-advisory",
         re.compile(
             r"pydantic_settings/sources/utils\.py:\d+: IncompleteFieldDefinitionWarning:|"
-            r"^warnings\.warn\($"
+            r"^warnings\.warn\((\s+#.*)?$"
         ),
         "pydantic-settings reports an unresolved optional lifespan annotation; the MCP startup and deterministic call remain the behavioral gate.",
     ),
