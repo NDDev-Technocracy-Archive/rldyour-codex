@@ -1,8 +1,6 @@
 name: dependency-check
 
 on:
-  schedule:
-    - cron: "30 5 * * *"
   push:
     branches: [main]
     paths:
@@ -22,14 +20,16 @@ concurrency:
 jobs:
   mcp-runtime-pins:
     name: MCP runtime pin freshness (scheduled)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
         with:
           install-codex: "false"
           install-dart: "false"
