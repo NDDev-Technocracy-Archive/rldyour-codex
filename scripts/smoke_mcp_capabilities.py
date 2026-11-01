@@ -19,7 +19,7 @@ EXPECTED_TOOLS: dict[str, set[str]] = {
     "sequential-thinking": {"sequentialthinking"},
     "chrome-devtools": {"new_page", "list_console_messages", "take_screenshot"},
     "context7": {"resolve-library-id", "query-docs"},
-    "deepwiki": {"read_wiki_structure", "ask_question"},
+    "deepwiki": {"read_wiki_structure", "ask_wiki_question"},
     "grep": {"searchGitHub"},
     "shadcn": {"get_project_registries", "search_items_in_registries"},
     "dart-flutter": {"analyze_files", "pub_dev_search"},

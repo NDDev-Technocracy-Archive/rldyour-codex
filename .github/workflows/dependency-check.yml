@@ -34,11 +34,15 @@ jobs:
           install-codex: "false"
           install-dart: "false"
 
-      - name: Check pinned MCP runtime versions
+      # The repository is frozen: its runtime pins record the final release
+      # and are not bumped to follow upstream (Serena 2.x and MCP Python SDK
+      # 2.x change the tool surface and client API). The report stays as an
+      # artifact and step summary, without failing the run.
+      - name: Check pinned MCP runtime versions (report)
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python3 scripts/check_mcp_runtime_versions.py --fail-on-outdated --json > dependency-check.json
+          python3 scripts/check_mcp_runtime_versions.py --json > dependency-check.json
 
       - name: Write dependency summary
         if: always()

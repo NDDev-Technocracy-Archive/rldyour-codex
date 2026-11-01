@@ -179,9 +179,9 @@ jobs:
             echo "## MCP runtime pin freshness (advisory on pull requests)"
             echo ""
             echo "This job runs without --fail-on-outdated so a stale pin does not"
-            echo "block pull request merges. The dependency-check.yml workflow on a"
-            echo "daily schedule runs with --fail-on-outdated and surfaces stale"
-            echo "pins as a separate signal for the maintainer to act on."
+            echo "block pull request merges. The repository is frozen, so stale"
+            echo "pins are reported here and by dependency-check.yml as a signal"
+            echo "only; run the script with --fail-on-outdated to gate a pin bump."
             echo ""
             if [ -f dependency-check.json ]; then
               echo '```json'

@@ -338,7 +338,7 @@ managed_subagent_reasoning_effort = "medium"
 mcp_tool_approvals = {
     "sequential-thinking": {"sequentialthinking": "approve"},
     "deepwiki": {
-        "ask_question": "approve",
+        "ask_wiki_question": "approve",
         "read_wiki_structure": "approve",
     },
     "grep": {"searchGitHub": "approve"},

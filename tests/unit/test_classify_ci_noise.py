@@ -24,6 +24,7 @@ def test_known_noise_is_classified_as_benign() -> None:
             " Downloaded pygments",
             "/opt/cache/pydantic_settings/sources/utils.py:47: IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition",
             "  warnings.warn(",
+            "  warnings.warn(  # noqa: B028  (called from many sources at differing depths, so no stacklevel is correct)",
             "turning off usage statistics. process.env['CI'] || process.env['CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS'] is set.",
             "chrome-devtools-mcp exposes content of the browser instance to the MCP clients allowing them to inspect,",
             "debug, and modify any data in the browser or DevTools.",
@@ -51,7 +52,7 @@ def test_known_noise_is_classified_as_benign() -> None:
         ]
     )
 
-    assert len(benign) == 36
+    assert len(benign) == 37
     assert unknown == []
 
 

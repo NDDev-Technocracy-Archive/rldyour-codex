@@ -57,7 +57,7 @@ All pull requests run the following workflows automatically:
 In addition, on push to `main` and on a weekly schedule:
 
 - `scorecard`: OpenSSF Scorecard analysis in JSON artifact/check mode with the badge result published to `scorecard.dev`.
-- `dependency-check` (`MCP runtime pin freshness (scheduled)`): runs daily and on push to MCP pin sources; fails loudly when pins are stale so the maintainer can bump them intentionally.
+- `dependency-check` (`MCP runtime pin freshness (scheduled)`): runs on push to MCP pin sources and on manual dispatch; reports stale pins in its summary and artifact without failing, because the frozen repository keeps its final runtime pins.
 
 A pull request is mergeable only when these checks complete and pass. Maintainers may dispatch additional scoped runs through `workflow_dispatch`.
 

@@ -1,0 +1,8 @@
+# actionlint 1.7.12 predates GitHub's Ubuntu 26.04 public-preview labels.
+# GitHub-hosted jobs already execute on both labels; declaring them here only
+# teaches actionlint's static runner-label table about that upstream addition.
+# It does not register or route to a self-hosted runner.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
+    - ubuntu-26.04-arm
