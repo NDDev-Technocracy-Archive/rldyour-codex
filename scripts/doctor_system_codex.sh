@@ -362,7 +362,7 @@ for server in disabled_codex_mcp_servers:
 tool_approvals = {
     "sequential-thinking": {"sequentialthinking": "approve"},
     "deepwiki": {
-        "ask_question": "approve",
+        "ask_wiki_question": "approve",
         "read_wiki_structure": "approve",
     },
     "grep": {"searchGitHub": "approve"},
