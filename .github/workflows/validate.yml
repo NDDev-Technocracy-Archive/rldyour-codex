@@ -32,7 +32,7 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'fast' || inputs.scope == 'runtime' || inputs.scope == 'release' || inputs.scope == 'mcp' || inputs.scope == 'full'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -70,7 +70,7 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'runtime' || inputs.scope == 'full'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     env:
       CODEX_HOME: /tmp/rldyour-codex-home
@@ -123,7 +123,7 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'release' || inputs.scope == 'full'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -154,7 +154,7 @@ jobs:
     if: |
       github.event_name != 'workflow_dispatch' ||
       inputs.scope == 'mcp' || inputs.scope == 'full'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -205,7 +205,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && (inputs.scope == 'mcp' || inputs.scope == 'full'))
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 45
     env:
       CODEX_HOME: /tmp/rldyour-codex-home
@@ -248,14 +248,14 @@ jobs:
           retention-days: 14
 
   workflows:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/tools@c192c6adcf22088abf456635de614d42e8fa3f8d # nddev-cicd-v0.6.20
+      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/tools@ab5739f31d142275590b35c654def3e027ec6c4f # nddev-cicd-v0.6.22
         with:
           capability: security
       - name: Lint and audit workflows

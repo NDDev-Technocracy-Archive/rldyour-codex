@@ -8,8 +8,8 @@ runner labels and keep third-party actions pinned to full commit SHAs.
 ## Shared Workflow Pin
 
 Every `NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows` action caller is
-pinned to engine version `nddev-cicd-v0.6.20` at commit
-`c192c6adcf22088abf456635de614d42e8fa3f8d`. The repository test
+pinned to engine version `nddev-cicd-v0.6.22` at commit
+`ab5739f31d142275590b35c654def3e027ec6c4f`. The repository test
 `tests/unit/test_shared_workflow_pin.py` rejects a mixed SHA or version comment.
 
 ## Required PR Gates

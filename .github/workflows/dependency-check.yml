@@ -20,7 +20,7 @@ concurrency:
 jobs:
   mcp-runtime-pins:
     name: MCP runtime pin freshness (scheduled)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout

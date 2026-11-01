@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   codeql:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -39,7 +39,7 @@ jobs:
 
   scorecard:
     if: ${{ github.event_name != 'pull_request' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -61,7 +61,7 @@ jobs:
 
   dependency-review:
     if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
