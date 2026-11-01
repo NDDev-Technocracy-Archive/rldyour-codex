@@ -28,7 +28,7 @@ pinned to engine version `nddev-cicd-v0.6.18` at commit
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `scorecard.yml` | push, weekly, manual, branch-protection changes | OpenSSF Scorecard JSON artifact/check-mode supply-chain signal. |
-| `dependency-check.yml` | daily, config changes, manual | MCP/runtime pin freshness and dependency report. |
+| `dependency-check.yml` | config changes, manual | MCP/runtime pin freshness report (non-blocking). |
 | `labeler.yml` | pull requests | Unprivileged PR labels, skipped for forks. |
 
 ## Release Gate
