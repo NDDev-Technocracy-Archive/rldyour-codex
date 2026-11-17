@@ -1,68 +1,31 @@
 name: dependency-check
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - "config/mcp-runtime-versions.env"
-      - "plugins/rldyour-mcps/.mcp.json"
-      - "scripts/check_mcp_runtime_versions.py"
-      - ".github/workflows/dependency-check.yml"
-  workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
-  group: dependency-check-${{ github.workflow }}-${{ github.ref }}
+  group: dependency-${{ github.run_id }}
   cancel-in-progress: false
-
 jobs:
-  mcp-runtime-pins:
-    name: MCP runtime pin freshness (scheduled)
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+  pins:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: ci-freshness
+      prepare: setup
+      python-version: 3.13.18
+      uv-version: 0.13.8
+      tools: just@1.59.0
+      repository-token: true
+      reports: 'dependency-check.json
 
-      - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] actionlint 1.7.12 rejects $/
-        with:
-          install-codex: "false"
-          install-dart: "false"
-
-      # The repository is frozen: its runtime pins record the final release
-      # and are not bumped to follow upstream (Serena 2.x and MCP Python SDK
-      # 2.x change the tool surface and client API). The report stays as an
-      # artifact and step summary, without failing the run.
-      - name: Check pinned MCP runtime versions (report)
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          python3 scripts/check_mcp_runtime_versions.py --json > dependency-check.json
-
-      - name: Write dependency summary
-        if: always()
-        run: |
-          {
-            echo "## MCP runtime pin freshness"
-            echo ""
-            if [ -f dependency-check.json ]; then
-              echo '```json'
-              cat dependency-check.json
-              echo '```'
-            else
-              echo "dependency-check.json was not created"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload dependency report
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: dependency-check
-          path: dependency-check.json
-          retention-days: 14
+        dependency-check-status.json'
+      timeout-minutes: 15
+'on':
+  push:
+    branches:
+    - main
+    paths:
+    - config/mcp-runtime-versions.env
+    - plugins/rldyour-mcps/.mcp.json
+    - scripts/check_mcp_runtime_versions.py
+    - .github/workflows/dependency-check.yml
+  workflow_dispatch: null

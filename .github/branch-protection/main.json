@@ -2,16 +2,10 @@
   "branch": "main",
   "maintainer_access": "maintainer can administer; required checks still apply to pushes",
   "required_status_checks": [
-    "Fast validation (ubuntu)",
-    "Runtime smoke (ubuntu)",
-    "Release dry-run",
-    "MCP runtime pin freshness",
-    "No-paid static security",
-    "Analyze (python) / CodeQL (python)",
-    "Analyze (actions) / CodeQL (actions)",
-    "cross-platform smoke (ubuntu-latest) / smoke (ubuntu-latest)",
-    "cross-platform smoke (windows-latest) / smoke (windows-latest)",
-    "cross-platform smoke (macos-latest) / smoke (macos-latest)"
+    "gate",
+    "codeql (python)",
+    "codeql (actions)",
+    "dependency-review"
   ],
   "strict_required_status_checks": true,
   "allow_force_pushes": false,
@@ -24,13 +18,10 @@
   },
   "enforce_admins": false,
   "notes": [
-    "This file documents the desired branch protection state for the public main branch.",
-    "Apply it through GitHub Settings -> Branches -> Add rule, or through a ruleset matching this shape.",
-    "Required status checks must use the exact job names emitted by .github/workflows/*.yml.",
-    "MCP safe call smoke (ubuntu) runs only on push (not on pull_request) and therefore is not included as a required pull-request status check.",
-    "CodeQL Analyze (python) and Analyze (actions) are required because .github/workflows/codeql.yml runs on every push to main and every pull request, in addition to its weekly schedule.",
-    "validate.yml exports the 'MCP runtime pin freshness' job (required on PR); dependency-check.yml exports 'MCP runtime pin freshness (scheduled)' which runs on schedule and on push to MCP pin sources and is intentionally not a pull-request required check.",
-    "Maintainer keeps administrative access for hotfixes; admin pushes do not trigger release.yml because that workflow listens on push:tags, not push:branches.",
+    "This declaration describes the source-only main check graph; settings still require actual emitted-context evidence.",
+    "gate requires every fast/unit/coverage, static materialization, source/type/security, release metadata, advisory-report production and Linux/Windows/macOS source outcome.",
+    "Installed-runtime and live MCP operator jobs are not a source acceptance claim and remain outside source admission.",
+    "CodeQL and dependency review remain independent mandatory security checks.",
     "Linear history is OFF on purpose: the estate policy is merge commits only (squash and rebase are disabled), and required_linear_history forbids merge commits - the two cannot both hold.",
     "Approvals are 0 and code-owner review is off because this is a single-maintainer repository: GitHub does not allow approving your own pull request, so any non-zero requirement is satisfiable only by an admin bypass on every merge."
   ]

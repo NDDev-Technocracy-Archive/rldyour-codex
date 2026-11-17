@@ -37,6 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Resolve and verify existing release tag
         shell: bash
@@ -111,7 +112,7 @@ jobs:
           echo "RELEASE_COMMIT=$tag_commit" >> "$GITHUB_ENV"
 
       - name: Set up validation runtime
-        uses: ./.github/actions/setup-codex-runtime
+        uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] source-owned publisher fixture
         with:
           install-codex: "false"
           install-dart: "false"
@@ -139,8 +140,8 @@ jobs:
           python3 scripts/validate_plugin_versions.py
           python3 scripts/validate_skill_routing.py
           python3 scripts/validate_instruction_docs.py
-          uv run --with pyyaml python scripts/validate_agent_tools.py
-          uv run --with pytest --with pytest-cov --with pyyaml python -m pytest
+          uv run --offline --locked --no-sync --group ci python scripts/validate_agent_tools.py
+          uv run --offline --locked --no-sync --group ci python -m pytest
 
       - name: Build deterministic bundle and evidence
         shell: bash

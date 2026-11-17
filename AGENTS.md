@@ -31,31 +31,24 @@ Use Codex-native surfaces only:
 
 Do not copy Codex-managed syntax into OpenCode/Gemini surfaces.
 
-## Validation Commands
+## Validation
 
-After any change in this module:
+Use just setup and just check for the prepared offline source profile.
+just test and static materialization run only on admitted CI, against isolated
+temporary homes and without an installed Codex runtime. Keep the existing
+coverage, schema, policy, release-integrity and all platform checks.
 
-```bash
-bash scripts/validate_fast.sh
-python3 scripts/validate_release.sh
-python3 scripts/validate_runtime.sh --strict-runtime
-python3 scripts/validate_instruction_docs.py
-python3 scripts/validate_plugin_versions.py
-python3 scripts/validate_contract.py
-```
-
-At minimum, also run:
-
-```bash
-bash scripts/validate_fast.sh
-bash scripts/validate_execpolicy_rules.sh
-```
+Installed-runtime and live MCP commands remain in the explicit operator
+workflow. A source-only change does not run or claim those probes, alter
+working configuration, activate a parent tuple or publish a release.
+For a separately authorized runtime change, retain the original strict doctor,
+execpolicy and hook/list validation contract.
 
 ## MCP and Runtime Policy
 
 - MCP launch metadata source is `.mcp.json` (portable metadata) and
   `config/mcp-runtime-versions.env` (runtime pins).
-- Runtimes and launchers are validated through local smoke checks before commit.
+- Runtime changes require their strict installed-runtime validation; source-only CI does not claim that evidence.
 - `install_system_codex.sh` writes portable paths into `~/.codex/config.toml`.
 - The installer owns `check_for_update_on_startup = false` in every managed
   config because bootstrap owns exact, transactional Codex runtime upgrades.
@@ -78,14 +71,14 @@ bash scripts/validate_execpolicy_rules.sh
 - Never commit credentials, browser cookies/profiles, or temporary diagnostic traces.
 - Security, CodeQL, secrets scanning, and dependency checks are mandatory in CI.
 
-## CI runner selection
+## CI source boundary
 
-This repository is public, so `pull_request` executes untrusted fork code.
-Every caller of a `NDDev-OpenNetwork/ci-workflows` reusable that exposes a `runner`
-input passes `runner: ubuntu-latest` explicitly, and must keep it. Several of
-those reusables may default `runner` to the retired `amsterdam` label, and
-that default is a property of the **pinned commit**, not of this
-repository - so dropping the explicit value would let a routine pin bump route
-fork PRs onto trusted private infrastructure with no diff here to review. On
-any ci-workflows pin bump, diff `inputs.runner.default` between the old and
-new commit before merging.
+All source callers use the immutable shared CI library and public hosted
+profiles. Vendor/operator workflows stay separate. Source/unit environments
+are locked before commands; do not restore late uv --with or floating tool
+execution. The existing config pins remain authoritative.
+
+just ci-refresh owns derived CI lock/guard/document outputs after a normal
+input update. Keep its output scope bounded and run it without operator
+credentials or runtime activation. A passing source gate is not installed
+runtime, MCP provider or parent acceptance.

@@ -54,3 +54,13 @@ exclude_also = [
   "if __name__ == .__main__.:",
   "raise SystemExit\\(main\\(\\)\\)",
 ]
+
+[dependency-groups]
+ci = [
+  "pytest==9.2.0",
+  "pytest-cov==7.1.0",
+  "PyYAML==6.0.3",
+  "pyright==1.1.414",
+  "mcp",
+  "zizmor==1.32.0",
+]

@@ -1,50 +1,49 @@
-# GitHub Actions Workflows
+# GitHub Actions workflows
 
-Ten workflows provide the public/free CI surface for the Codex adapter. The
-repository is public, so standard GitHub-hosted runners do not consume the
-owner's private-repository Actions minutes. Keep every workflow on standard
-runner labels and keep third-party actions pinned to full commit SHAs.
+Automatic source CI runs on public hosted workers. The project owns Just
+commands; the shared library prepares exact SDKs, caches, reports and merge
+stops. Runtime configuration, installed vendor compatibility and publication
+are separate scopes.
 
 ## Shared Workflow Pin
 
-Every `NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows` action caller is
-pinned to engine version `nddev-cicd-v0.6.22` at commit
-`ab5739f31d142275590b35c654def3e027ec6c4f`. The repository test
-`tests/unit/test_shared_workflow_pin.py` rejects a mixed SHA or version comment.
+The caller declarations use engine version `v0.6.68` at commit
+`356a5b38a8fe5b4ac9d11266e42e6196dc6bde49`. `just ci-refresh` derives this section and the
+existing coherence guard from the complete workflow input set. It never moves a caller pin.
 
-## Required PR Gates
+## Required source gates
 
-| Workflow | Purpose |
-| --- | --- |
-| `validate.yml` | Fast validation and optional runtime/release/MCP scopes on Ubuntu standard runners. |
-| `cross-platform.yml` | Lightweight metadata/path smoke on standard Ubuntu, Windows, and macOS public runners. |
-| `security-static.yml` | Action pin validation, actionlint, text security scan, ShellCheck, and Pyright. |
-| `secret-scan.yml` | Gitleaks history scan for accidental secrets. |
-| `codeql.yml` | CodeQL code scanning for the adapter source surface. |
-| `dependency-review.yml` | Pull-request dependency diff review. |
+- ci.yml runs the original fast/unit/coverage suite, offline source/type/security
+  checks, static materialization without an installed Codex runtime, release
+  metadata/SBOM checks and Linux/Windows/macOS metadata compilation.
+- The frozen MCP package-freshness report stays advisory; its actual command
+  exit is retained beside the report. Missing or malformed reports fail.
+- The aggregate requires every actual source/platform outcome and the shared
+  merge stops on a pull request.
+- security.yml preserves both CodeQL languages, Scorecard and dependency review.
+- dependency-check.yml retains the source-pin-change/report trigger.
 
-## Supply-Chain And Drift Gates
+The desired branch context declaration is in branch-protection/main.json.
+Repository settings must bind the actual emitted names, after real CI evidence;
+this document does not apply settings or fabricate statuses.
 
-| Workflow | Trigger | Purpose |
-| --- | --- | --- |
-| `scorecard.yml` | push, weekly, manual, branch-protection changes | OpenSSF Scorecard JSON artifact/check-mode supply-chain signal. |
-| `dependency-check.yml` | config changes, manual | MCP/runtime pin freshness report (non-blocking). |
-| `labeler.yml` | pull requests | Unprivileged PR labels, skipped for forks. |
+## Explicit operator workflows
 
-## Release Gate
+runtime-verification.yml preserves the existing installed-runtime and live MCP
+jobs behind workflow_dispatch. It stays outside source admission.
+release.yml only verifies/publishes an existing numeric tag; it cannot create
+or push one. Source success proves neither installed runtime nor parent/release
+acceptance.
 
-| Workflow | Trigger | Purpose |
-| --- | --- | --- |
-| `release.yml` | numeric product tag or existing-tag manual dispatch | Verifies the exact remote tag and its ancestry from `origin/main`, then runs release validation, deterministic bundle, SBOM, attestations, and `gh release --verify-tag`; it never creates or pushes tags. |
+## Dependency preparation and derived CI outputs
 
-## Cost Policy
+just setup installs the locked CI group without building this virtual package.
+Source/test commands run offline/locked/no-sync after preparation. The MCP SDK
+comes from the frozen config/mcp-runtime-versions.env; the CI lock must agree.
+The same file supplies the Codex version of the isolated, locked operator NPM
+fixture. Preparing metadata does not install or execute that fixture.
 
-- Public adapter CI must stay on standard GitHub-hosted runner labels only.
-- No self-hosted, larger, runner-group, ARC, private organization, or paid-size
-  runner labels.
-- The public/free baseline includes one lightweight cross-platform workflow on
-  standard Ubuntu, Windows, and macOS runners. Runtime-heavy and release jobs
-  may stay Ubuntu-only when the local script is OS-independent or the required
-  toolchain is Linux-only.
-- Workflow artifacts must set explicit retention and stay at or below 30 days.
-- Heavy or drift-oriented checks use schedules/manual dispatch where practical.
+After a complete normal updater change, just ci-refresh regenerates only
+uv.lock, the derived operator fixture manifests/lock, this pin section and the
+existing coherence guard. It never edits a caller pin or frozen runtime setting.
+The updater must qualify that producer in its isolated command contract.

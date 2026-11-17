@@ -320,3 +320,12 @@ Reference docs:
 **Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, validation, change rules, and pull request expectations. Participants are expected to follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 Copyright (C) 2026 Danil Silantyev (github:rldyourmnd), CEO NDDev. This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+## Source-only CI maintenance
+
+The shared source workflow runs `just check`, the existing unit/coverage
+suite and isolated static materialization. `just setup` prepares the locked
+CI group first; `just ci-refresh` derives CI lock/guard/document outputs after
+complete normal updater input changes. The frozen runtime pins remain in their
+existing configuration source. Installed-runtime/live MCP verification and
+publication remain explicit operator workflows, outside source admission.

@@ -31,7 +31,7 @@ if [ -f AGENTS.md ] || [ -f .claude/CLAUDE.md ]; then
 else
   python3 scripts/validate_instruction_docs.py
 fi
-"$UV_BIN" run --with pyyaml python scripts/validate_agent_tools.py
+"$UV_BIN" run --offline --locked --no-sync --group ci python scripts/validate_agent_tools.py
 python3 scripts/validate_codex_mcp_env_forwarding.py
 
 step "Supply-chain and text security"
@@ -42,7 +42,7 @@ step "Python syntax"
 python3 -m compileall -q scripts plugins tests
 
 step "Pytest entrypoints"
-"$UV_BIN" run --with pytest --with pytest-cov --with pyyaml pytest --collect-only --no-cov -q >/dev/null
-"$UV_BIN" run --with pytest --with pytest-cov --with pyyaml python -m pytest
+"$UV_BIN" run --offline --locked --no-sync --group ci pytest --collect-only --no-cov -q >/dev/null
+"$UV_BIN" run --offline --locked --no-sync --group ci python -m pytest
 
 printf '\nFast validation passed.\n'
