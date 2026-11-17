@@ -2,7 +2,7 @@ name: setup-codex-runtime
 description: Install the rldyour Codex validation runtime.
 inputs:
   install-codex:
-    description: Install pinned @openai/codex globally.
+    description: Prepare the pinned Codex fixture in its locked job-local environment.
     required: false
     default: 'true'
   install-dart:
@@ -35,37 +35,82 @@ runs:
       sdk: ${{ steps.pins.outputs.dart }}
   - name: Install system packages
     shell: bash
-    run: "set -euo pipefail\nif [ \"$RUNNER_OS\" = \"Linux\" ]; then\n  sudo apt-get update\n  sudo apt-get install -y jq ripgrep shellcheck\nelif [ \"$RUNNER_OS\" = \"macOS\" ]; then\n  command -v jq >/dev/null 2>&1 || brew install jq\n  command -v rg >/dev/null 2>&1 || brew install ripgrep\n  command -v shellcheck >/dev/null 2>&1 || brew install shellcheck\nelse\n  echo \"Unsupported runner OS: $RUNNER_OS\" >&2\n  exit 1\nfi\n"
+    run: |
+      set -euo pipefail
+      if [ "$RUNNER_OS" = "Linux" ]; then
+        sudo apt-get update
+        sudo apt-get install -y jq ripgrep shellcheck
+      elif [ "$RUNNER_OS" = "macOS" ]; then
+        command -v jq >/dev/null 2>&1 || brew install jq
+        command -v rg >/dev/null 2>&1 || brew install ripgrep
+        command -v shellcheck >/dev/null 2>&1 || brew install shellcheck
+      else
+        echo "Unsupported runner OS: $RUNNER_OS" >&2
+        exit 1
+      fi
   - name: Install pinned GitHub MCP server
     if: inputs.install-codex == 'true'
     shell: bash
-    run: "set -euo pipefail\n# shellcheck source=config/mcp-runtime-versions.env\n. config/mcp-runtime-versions.env\n: \"${GITHUB_MCP_SERVER_VERSION:?GITHUB_MCP_SERVER_VERSION is required}\"\ncase \"$RUNNER_OS\" in\n  Linux) os_name=\"Linux\" ;;\n  macOS) os_name=\"Darwin\" ;;\n  *)\n    echo \"Unsupported runner OS for github-mcp-server: $RUNNER_OS\" >&2\n    exit 1\n    ;;\nesac\ncase \"$(uname -m)\" in\n  x86_64|amd64) arch_name=\"x86_64\" ;;\n  arm64|aarch64) arch_name=\"arm64\" ;;\n  i386|i686) arch_name=\"i386\" ;;\n  *)\n    echo \"Unsupported runner architecture for github-mcp-server: $(uname -m)\" >&2\n    exit 1\n    ;;\nesac\narchive=\"github-mcp-server_${os_name}_${arch_name}.tar.gz\"\nbase_url=\"https://github.com/github/github-mcp-server/releases/download/v${GITHUB_MCP_SERVER_VERSION}\"\ntmp_dir=\"$(mktemp -d)\"\ninstall_dir=\"${RUNNER_TEMP:-$tmp_dir}/rldyour-bin\"\nmkdir -p \"$install_dir\"\ncurl -fsSL \"${base_url}/${archive}\" -o \"${tmp_dir}/${archive}\"\ncurl -fsSL \"\
-      ${base_url}/github-mcp-server_${GITHUB_MCP_SERVER_VERSION}_checksums.txt\" -o \"${tmp_dir}/checksums.txt\"\ngrep \"  ${archive}$\" \"${tmp_dir}/checksums.txt\" > \"${tmp_dir}/checksums.selected\"\nif [ \"$RUNNER_OS\" = \"Linux\" ]; then\n  (cd \"$tmp_dir\" && sha256sum -c checksums.selected)\nelse\n  expected_sha=\"$(awk '{print $1}' \"${tmp_dir}/checksums.selected\")\"\n  actual_sha=\"$(shasum -a 256 \"${tmp_dir}/${archive}\" | awk '{print $1}')\"\n  if [ \"$expected_sha\" != \"$actual_sha\" ]; then\n    echo \"github-mcp-server checksum mismatch\" >&2\n    exit 1\n  fi\nfi\ntar -xzf \"${tmp_dir}/${archive}\" -C \"$tmp_dir\"\ninstall -m 0755 \"${tmp_dir}/github-mcp-server\" \"${install_dir}/github-mcp-server\"\nprintf \"bin_dir=%s\\n\" \"$install_dir\" >> \"$GITHUB_OUTPUT\"\n\"${install_dir}/github-mcp-server\" --version || \"${install_dir}/github-mcp-server\" --help >/dev/null\n"
+    run: |
+      set -euo pipefail
+      # shellcheck source=config/mcp-runtime-versions.env
+      . config/mcp-runtime-versions.env
+      : "${GITHUB_MCP_SERVER_VERSION:?GITHUB_MCP_SERVER_VERSION is required}"
+      case "$RUNNER_OS" in
+        Linux) os_name="Linux" ;;
+        macOS) os_name="Darwin" ;;
+        *)
+          echo "Unsupported runner OS for github-mcp-server: $RUNNER_OS" >&2
+          exit 1
+          ;;
+      esac
+      case "$(uname -m)" in
+        x86_64|amd64) arch_name="x86_64" ;;
+        arm64|aarch64) arch_name="arm64" ;;
+        i386|i686) arch_name="i386" ;;
+        *)
+          echo "Unsupported runner architecture for github-mcp-server: $(uname -m)" >&2
+          exit 1
+          ;;
+      esac
+      archive="github-mcp-server_${os_name}_${arch_name}.tar.gz"
+      base_url="https://github.com/github/github-mcp-server/releases/download/v${GITHUB_MCP_SERVER_VERSION}"
+      tmp_dir="$(mktemp -d)"
+      install_dir="${RUNNER_TEMP:-$tmp_dir}/rldyour-bin"
+      mkdir -p "$install_dir"
+      curl -fsSL "${base_url}/${archive}" -o "${tmp_dir}/${archive}"
+      curl -fsSL "${base_url}/github-mcp-server_${GITHUB_MCP_SERVER_VERSION}_checksums.txt" -o "${tmp_dir}/checksums.txt"
+      grep "  ${archive}$" "${tmp_dir}/checksums.txt" > "${tmp_dir}/checksums.selected"
+      if [ "$RUNNER_OS" = "Linux" ]; then
+        (cd "$tmp_dir" && sha256sum -c checksums.selected)
+      else
+        expected_sha="$(awk '{print $1}' "${tmp_dir}/checksums.selected")"
+        actual_sha="$(shasum -a 256 "${tmp_dir}/${archive}" | awk '{print $1}')"
+        if [ "$expected_sha" != "$actual_sha" ]; then
+          echo "github-mcp-server checksum mismatch" >&2
+          exit 1
+        fi
+      fi
+      tar -xzf "${tmp_dir}/${archive}" -C "$tmp_dir"
+      install -m 0755 "${tmp_dir}/github-mcp-server" "${install_dir}/github-mcp-server"
+      printf "bin_dir=%s\n" "$install_dir" >> "$GITHUB_OUTPUT"
+      "${install_dir}/github-mcp-server" --version || "${install_dir}/github-mcp-server" --help >/dev/null
     id: github
   - name: Install pinned Codex CLI
     if: inputs.install-codex == 'true'
     shell: bash
-    run: 'set -euo pipefail
-
-      python3 - <<''PY''
-
+    run: |-
+      set -euo pipefail
+      python3 - <<'PY'
       import json,re
-
       from pathlib import Path
-
-      text=Path(''config/mcp-runtime-versions.env'').read_text()
-
-      version=re.search(r''(?m)^CODEX_CLI_VERSION=([0-9]+\.[0-9]+\.[0-9]+)$'',text)
-
-      declared=json.loads(Path(''.github/ci/runtime/package.json'').read_text())[''dependencies''][''@openai/codex'']
-
-      if not version or declared!=version[1]: raise SystemExit(''Refresh the CI runtime lock from the frozen declaration first'')
-
+      text=Path('config/mcp-runtime-versions.env').read_text()
+      version=re.search(r'(?m)^CODEX_CLI_VERSION=([0-9]+\.[0-9]+\.[0-9]+)$',text)
+      declared=json.loads(Path('.github/ci/runtime/package.json').read_text())['dependencies']['@openai/codex']
+      if not version or declared!=version[1]: raise SystemExit('Refresh the CI runtime lock from the frozen declaration first')
       PY
-
       npm ci --prefix .github/ci/runtime --ignore-scripts --no-audit --no-fund
-
-      .github/ci/runtime/node_modules/.bin/codex --version'
+      .github/ci/runtime/node_modules/.bin/codex --version
   - name: Prepare locked validation dependencies
     shell: bash
     run: uv sync --locked --group ci --no-install-project --no-build
@@ -75,20 +120,13 @@ runs:
     env:
       MCP_BIN: ${{ steps.github.outputs.bin_dir }}
     with:
-      script: 'const fs = require(''node:fs'');
-
-        const path = require(''node:path'');
-
+      script: |-
+        const fs = require('node:fs');
+        const path = require('node:path');
         const temporary = fs.realpathSync(process.env.RUNNER_TEMP);
-
         const mcp = fs.realpathSync(process.env.MCP_BIN);
-
         const relative = path.relative(temporary, mcp);
-
-        if (relative.startsWith(''..'') || path.isAbsolute(relative)) throw new Error(''Prepared MCP path is outside the job temporary directory'');
-
-        const runtime = fs.realpathSync(path.join(process.env.GITHUB_WORKSPACE, ''.github/ci/runtime/node_modules/.bin''));
-
+        if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Prepared MCP path is outside the job temporary directory');
+        const runtime = fs.realpathSync(path.join(process.env.GITHUB_WORKSPACE, '.github/ci/runtime/node_modules/.bin'));
         core.addPath(mcp);
-
-        core.addPath(runtime);'
+        core.addPath(runtime);

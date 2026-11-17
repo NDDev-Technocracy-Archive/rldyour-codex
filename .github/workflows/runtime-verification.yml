@@ -36,18 +36,22 @@ jobs:
       uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] source-owned operator fixture
     - name: Install managed browser wrapper fixture
       shell: bash
-      run: 'set -euo pipefail
-
+      run: |
+        set -euo pipefail
         install -d "$HOME/.local/bin"
-
         install -m 0755 tests/fixtures/chrome-devtools-mcp "$HOME/.local/bin/chrome-devtools-mcp"
-
-        '
     - name: Run runtime validation
       run: scripts/validate_runtime.sh --codex-home "$CODEX_HOME" --strict-runtime
     - name: Write validation summary
       if: success()
-      run: "{\n  echo \"## rldyour Codex validation\"\n  echo \"- OS: ${RUNNER_OS}\"\n  echo \"- Ref: ${GITHUB_REF}\"\n  echo \"- SHA: ${GITHUB_SHA}\"\n  echo \"- Checks: installer, quick strict doctor, Codex hooks/list trust smoke, hook smoke\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n"
+      run: |
+        {
+          echo "## rldyour Codex validation"
+          echo "- OS: ${RUNNER_OS}"
+          echo "- Ref: ${GITHUB_REF}"
+          echo "- SHA: ${GITHUB_SHA}"
+          echo "- Checks: installer, quick strict doctor, Codex hooks/list trust smoke, hook smoke"
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Collect diagnostics
       if: failure()
       run: scripts/collect_diagnostics.sh --output diagnostics/ci
@@ -78,13 +82,24 @@ jobs:
     - name: Install rldyour Codex into temporary CODEX_HOME
       run: scripts/install_system_codex.sh --apply --codex-home "$CODEX_HOME"
     - name: Probe deterministic MCP tool calls
-      run: "set -euo pipefail\n# figma is a localhost MCP and grep.app is an external hosted MCP; both are\n# unreachable/unreliable on GitHub-hosted runners, so their live safe-call probe\n# is skipped in CI. Both stay config-validated (static) and function in real use.\nscripts/smoke_mcp_capabilities.sh \\\n  --codex-home \"$CODEX_HOME\" \\\n  --allow-missing-env \\\n  --skip-server figma \\\n  --skip-server grep \\\n  --skip-server chrome-devtools \\\n  2>mcp-safe-calls.stderr.log\npython3 scripts/classify_ci_noise.py --strict mcp-safe-calls.stderr.log\n"
+      run: |
+        set -euo pipefail
+        # figma is a localhost MCP and grep.app is an external hosted MCP; both are
+        # unreachable/unreliable on GitHub-hosted runners, so their live safe-call probe
+        # is skipped in CI. Both stay config-validated (static) and function in real use.
+        scripts/smoke_mcp_capabilities.sh \
+          --codex-home "$CODEX_HOME" \
+          --allow-missing-env \
+          --skip-server figma \
+          --skip-server grep \
+          --skip-server chrome-devtools \
+          2>mcp-safe-calls.stderr.log
+        python3 scripts/classify_ci_noise.py --strict mcp-safe-calls.stderr.log
     - name: Upload MCP safe-call stderr
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
       with:
         name: mcp-safe-calls-stderr
-        path: 'mcp-safe-calls.stderr.log
-
-          '
+        path: |
+          mcp-safe-calls.stderr.log
         retention-days: 14
