@@ -1,0 +1,108 @@
+name: source-ci
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited, labeled]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: source-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  fast:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: test
+      prepare: setup
+      python-version: '3.13.18'
+      uv-version: '0.13.8'
+      node-version: '26.13.1'
+      tools: just@1.59.0
+      fetch-depth: 0
+      reports: |
+        pytest.xml
+        coverage.xml
+        ci-reports/pytest.stderr.log
+      timeout-minutes: 20
+  source:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: check
+      arguments: ${{ github.event_name == 'pull_request' && format('["{0}","{1}"]', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || '[]' }}
+      prepare: setup
+      python-version: '3.13.18'
+      uv-version: '0.13.8'
+      node-version: '26.13.1'
+      tools: just@1.59.0,shellcheck@0.11.0
+      tool-assets: .github/ci/source-tools.json
+      fetch-depth: 0
+      timeout-minutes: 25
+  materialize:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: ci-materialize
+      prepare: setup
+      python-version: '3.13.18'
+      uv-version: '0.13.8'
+      tools: just@1.59.0
+      timeout-minutes: 15
+  release-check:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: ci-release
+      prepare: setup
+      python-version: '3.13.18'
+      uv-version: '0.13.8'
+      tools: just@1.59.0
+      reports: dist/validation
+      timeout-minutes: 15
+  platforms:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-2025, macos-26]
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ${{ matrix.os }}
+      recipe: ci-platform
+      python-version: '3.13.18'
+      tools: just@1.59.0
+      timeout-minutes: 10
+  pins:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+      recipe: ci-freshness
+      prepare: setup
+      python-version: '3.13.18'
+      uv-version: '0.13.8'
+      tools: just@1.59.0
+      repository-token: true
+      reports: |
+        dependency-check.json
+        dependency-check-status.json
+      timeout-minutes: 15
+  merge-stops:
+    if: github.event_name == 'pull_request'
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/merge-stops.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    with:
+      hosted-runner: ubuntu-26.04
+  gate:
+    if: always()
+    needs: [fast, source, materialize, release-check, platforms, pins, merge-stops]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every actual source and platform verdict
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          EXPECTED: >-
+            {"fast":"success","source":"success","materialize":"success","release-check":"success","platforms":"success","pins":"success","merge-stops":"${{ github.event_name == 'pull_request' && 'success' || 'skipped' }}"}
+        run: jq -e --argjson want "$EXPECTED" 'map_values(.result) == $want' <<< "$NEEDS"

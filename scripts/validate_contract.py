@@ -13,6 +13,16 @@ CONTRACT_PATH = ROOT / "config/rldyour-contract.json"
 EXPECTED_AUTHOR = "Danil Silantyev (github:rldyourmnd), CEO NDDev"
 
 
+def source_command_directories(root: Path) -> list[Path]:
+    """Find authored command surfaces without counting the ignored tool environment."""
+    return [
+        path.relative_to(root)
+        for path in sorted(root.glob("**/commands"))
+        if path.is_dir() and ".git" not in path.parts
+        and path.relative_to(root).parts[0] != ".venv"
+    ]
+
+
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -128,11 +138,7 @@ def main() -> int:
 
     slash_contract = contract.get("slash_commands")
     if isinstance(slash_contract, dict) and slash_contract.get("count") == 0:
-        command_dirs = [
-            path.relative_to(ROOT)
-            for path in ROOT.glob("**/commands")
-            if path.is_dir() and ".git" not in path.parts
-        ]
+        command_dirs = source_command_directories(ROOT)
         if command_dirs:
             errors.append(f"slash_commands: expected none, found {command_dirs}")
     else:

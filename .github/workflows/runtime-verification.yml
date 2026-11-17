@@ -1,0 +1,90 @@
+name: explicit runtime verification
+'on':
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Explicit installed-runtime or live MCP verification; not source CI.
+        required: true
+        default: runtime
+        type: choice
+        options:
+        - runtime
+        - mcp
+        - full
+permissions:
+  contents: read
+concurrency:
+  group: runtime-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  runtime-ubuntu:
+    name: Runtime smoke (ubuntu)
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'runtime' || inputs.scope == 'full')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 35
+    env:
+      CODEX_HOME: /tmp/rldyour-codex-home
+      RLDYOUR_MCP_CAPABILITY_LIST_ONLY: '1'
+      RLDYOUR_MCP_CAPABILITY_ALLOW_MISSING_ENV: '1'
+      RLDYOUR_SKIP_LSP_HEALTH: '1'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        persist-credentials: false
+    - name: Set up validation runtime
+      uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] source-owned operator fixture
+    - name: Install managed browser wrapper fixture
+      shell: bash
+      run: 'set -euo pipefail
+
+        install -d "$HOME/.local/bin"
+
+        install -m 0755 tests/fixtures/chrome-devtools-mcp "$HOME/.local/bin/chrome-devtools-mcp"
+
+        '
+    - name: Run runtime validation
+      run: scripts/validate_runtime.sh --codex-home "$CODEX_HOME" --strict-runtime
+    - name: Write validation summary
+      if: success()
+      run: "{\n  echo \"## rldyour Codex validation\"\n  echo \"- OS: ${RUNNER_OS}\"\n  echo \"- Ref: ${GITHUB_REF}\"\n  echo \"- SHA: ${GITHUB_SHA}\"\n  echo \"- Checks: installer, quick strict doctor, Codex hooks/list trust smoke, hook smoke\"\n} >> \"$GITHUB_STEP_SUMMARY\"\n"
+    - name: Collect diagnostics
+      if: failure()
+      run: scripts/collect_diagnostics.sh --output diagnostics/ci
+    - name: Upload diagnostics
+      if: failure()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: diagnostics-ubuntu
+        path: diagnostics/ci
+        retention-days: 14
+  mcp-safe-calls:
+    name: MCP safe call smoke (ubuntu)
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'mcp' || inputs.scope == 'full')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      CODEX_HOME: /tmp/rldyour-codex-home
+      RLDYOUR_MCP_CAPABILITY_ALLOW_MISSING_ENV: '1'
+      RLDYOUR_SKIP_LSP_HEALTH: '1'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Set up validation runtime
+      uses: ./.github/actions/setup-codex-runtime # zizmor: ignore[self-repository] source-owned operator fixture
+    - name: Install rldyour Codex into temporary CODEX_HOME
+      run: scripts/install_system_codex.sh --apply --codex-home "$CODEX_HOME"
+    - name: Probe deterministic MCP tool calls
+      run: "set -euo pipefail\n# figma is a localhost MCP and grep.app is an external hosted MCP; both are\n# unreachable/unreliable on GitHub-hosted runners, so their live safe-call probe\n# is skipped in CI. Both stay config-validated (static) and function in real use.\nscripts/smoke_mcp_capabilities.sh \\\n  --codex-home \"$CODEX_HOME\" \\\n  --allow-missing-env \\\n  --skip-server figma \\\n  --skip-server grep \\\n  --skip-server chrome-devtools \\\n  2>mcp-safe-calls.stderr.log\npython3 scripts/classify_ci_noise.py --strict mcp-safe-calls.stderr.log\n"
+    - name: Upload MCP safe-call stderr
+      if: always()
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: mcp-safe-calls-stderr
+        path: 'mcp-safe-calls.stderr.log
+
+          '
+        retention-days: 14

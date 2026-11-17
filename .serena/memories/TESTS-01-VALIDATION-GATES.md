@@ -39,6 +39,8 @@ validation gates and test suites
   numeric input, exact remote-tag lookup, peeled commit ancestry for tag-push
   and manual paths, and centralized `gh release --verify-tag` publication.
 
+- Automatic CI separates source/unit/static-materialization checks from explicit installed-runtime and live MCP operators. The source profile refuses an ambient Codex runtime. Source/tool inputs are locked before use; just ci-refresh owns only derived CI lock, fixture and coherence/document outputs. Source success does not establish installed-runtime or parent acceptance. Issue36.
+
 ## Evidence
 - `commit:693a00640832d3af8355066c0fd2fda4e84ad78e`
 - `path:scripts`

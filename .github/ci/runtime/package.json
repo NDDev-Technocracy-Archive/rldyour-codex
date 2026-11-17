@@ -1,0 +1,7 @@
+{
+  "name": "rldyour-codex-ci-runtime",
+  "private": true,
+  "dependencies": {
+    "@openai/codex": "0.144.1"
+  }
+}

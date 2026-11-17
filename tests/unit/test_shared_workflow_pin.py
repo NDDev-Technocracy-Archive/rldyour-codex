@@ -6,9 +6,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github/workflows"
 WORKFLOW_DOC = WORKFLOWS / "README.md"
-SHARED_REPO = "NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows"
-SHARED_SHA = "ab5739f31d142275590b35c654def3e027ec6c4f"
-SHARED_VERSION = "nddev-cicd-v0.6.22"
+SHARED_REPO = "NDDev-Technocracy-OpenNetwork/nddev-ci"
+SHARED_SHA = "a12acfc75fd7daee2fac9a246ee60683fe18955b"
+SHARED_VERSION = "v0.6.67"
 PIN_RE = re.compile(
     rf"^\s*(?:-\s*)?uses:\s*{re.escape(SHARED_REPO)}/[^@\s]+@{SHARED_SHA}"
     rf"\s+#\s*{re.escape(SHARED_VERSION)}\s*$"
@@ -24,7 +24,7 @@ def test_all_shared_workflow_callers_use_one_verified_pin() -> None:
             if f"{SHARED_REPO}/" in line:
                 callers.append((path, line_number, line))
 
-    assert callers, "no STD-0004 library callers found"
+    assert callers, "no CI library callers found"
     drift = [
         f"{path.relative_to(ROOT)}:{line_number}: {line.strip()}"
         for path, line_number, line in callers

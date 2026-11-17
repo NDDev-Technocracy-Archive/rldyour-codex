@@ -50,3 +50,7 @@ final_runs/
 .serena/.stop_lifecycle_timeout_marker
 .serena/.bootstrap_overrides.log
 .serena/.gitignore
+
+# Owned CI fixture dependencies/reports
+.github/ci/runtime/node_modules/
+ci-reports/
