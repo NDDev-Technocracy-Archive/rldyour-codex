@@ -7,8 +7,8 @@ are separate scopes.
 
 ## Shared Workflow Pin
 
-The caller declarations use engine version `v0.6.67` at commit
-`a12acfc75fd7daee2fac9a246ee60683fe18955b`. `just ci-refresh` derives this section and the
+The caller declarations use engine version `v0.6.68` at commit
+`356a5b38a8fe5b4ac9d11266e42e6196dc6bde49`. `just ci-refresh` derives this section and the
 existing coherence guard from the complete workflow input set. It never moves a caller pin.
 
 ## Required source gates

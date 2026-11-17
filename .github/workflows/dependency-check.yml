@@ -6,7 +6,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   pins:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: ci-freshness

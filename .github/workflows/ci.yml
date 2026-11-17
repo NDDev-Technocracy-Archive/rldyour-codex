@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   fast:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: test
@@ -29,7 +29,7 @@ jobs:
         ci-reports/pytest.stderr.log
       timeout-minutes: 20
   source:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: check
@@ -43,7 +43,7 @@ jobs:
       fetch-depth: 0
       timeout-minutes: 25
   materialize:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: ci-materialize
@@ -53,7 +53,7 @@ jobs:
       tools: just@1.59.0
       timeout-minutes: 15
   release-check:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: ci-release
@@ -68,7 +68,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04, windows-2025, macos-26]
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ${{ matrix.os }}
       recipe: ci-platform
@@ -76,7 +76,7 @@ jobs:
       tools: just@1.59.0
       timeout-minutes: 10
   pins:
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/recipe.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
       recipe: ci-freshness
@@ -91,7 +91,7 @@ jobs:
       timeout-minutes: 15
   merge-stops:
     if: github.event_name == 'pull_request'
-    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/merge-stops.yml@a12acfc75fd7daee2fac9a246ee60683fe18955b # v0.6.67
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/merge-stops.yml@356a5b38a8fe5b4ac9d11266e42e6196dc6bde49 # v0.6.68
     with:
       hosted-runner: ubuntu-26.04
   gate:
